@@ -1,0 +1,111 @@
+version: '3.8'
+name: collie
+
+services:
+
+  db-collie:
+    container_name: collie-db-collie
+    image: postgres:latest
+    ports:
+      - 5432:5432
+    environment:
+      - POSTGRES_USER=collie
+      - POSTGRES_PASSWORD=collie
+      - POSTGRES_DB=collie
+    volumes:
+      - $VOLUME/postgres/collie/data:/var/lib/postgresql/data
+    restart: always
+    networks:
+      - private-network
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: collie-prometheus
+    ports:
+      - 9090:9090
+    volumes:
+      - $VOLUME/prometheus:/etc/prometheus
+      - $VOLUME/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - private-network
+
+  grafana:
+    container_name: collie-grafana
+    image: grafana/grafana-enterprise
+    ports:
+      - 3000:3000
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - $VOLUME/grafana:/var/lib/grafana
+      - $VOLUME/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources      
+    restart: always
+    networks:
+      - private-network
+
+  discovery:
+    build:
+      context: ../platform.241.collie.discovery/
+      dockerfile: Dockerfile
+    container_name: collie-discovery
+    image: collie-discovery:latest
+    ports:
+      - 8761:8761
+    restart: always
+    networks:
+      - private-network
+
+  gateway:
+    build:
+      context: ../platform.241.collie.gateway/
+      dockerfile: Dockerfile
+    container_name: collie-gateway
+    image: collie-gateway:latest
+    ports:
+      - 8080:8080
+    environment:
+      - eureka.client.service-url.defaultZone=http://collie-discovery:8761/eureka/
+    networks:
+      - private-network
+    depends_on:
+      - discovery
+
+  account:
+    build:
+      context: ../platform.241.collie.account-resource/
+      dockerfile: Dockerfile
+    image: collie-account:latest
+    environment:
+      - spring.datasource.url=jdbc:postgresql://collie-db-collie:5432/collie
+      - spring.datasource.username=collie
+      - spring.datasource.password=collie
+      - eureka.client.service-url.defaultZone=http://collie-discovery:8761/eureka/
+    deploy:
+      mode: replicated
+      replicas: 1
+    restart: always
+    networks:
+      - private-network
+    depends_on:
+      - db-collie
+      - discovery
+
+  auth:
+    build:
+      context: ../platform.241.collie.auth-resource/
+      dockerfile: Dockerfile
+    image: collie-auth:latest
+    environment:
+      - eureka.client.service-url.defaultZone=http://collie-discovery:8761/eureka/
+    deploy:
+      mode: replicated
+      replicas: 1
+    networks:
+      - private-network
+    depends_on:
+      - discovery
+      - account
+
+networks:
+  private-network:
+    driver: bridge
