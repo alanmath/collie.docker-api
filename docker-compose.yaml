@@ -45,7 +45,7 @@ services:
 
   discovery:
     build:
-      context: ../platform.241.collie.discovery/
+      context: ../collie.discovery/
       dockerfile: Dockerfile
     container_name: collie-discovery
     image: collie-discovery:latest
@@ -57,7 +57,7 @@ services:
 
   gateway:
     build:
-      context: ../platform.241.collie.gateway/
+      context: ../collie.gateway/
       dockerfile: Dockerfile
     container_name: collie-gateway
     image: collie-gateway:latest
@@ -72,7 +72,7 @@ services:
 
   account:
     build:
-      context: ../platform.241.collie.account-resource/
+      context: ../collie.account-resource/
       dockerfile: Dockerfile
     image: collie-account:latest
     environment:
@@ -92,7 +92,7 @@ services:
 
   auth:
     build:
-      context: ../platform.241.collie.auth-resource/
+      context: ../collie.auth-resource/
       dockerfile: Dockerfile
     image: collie-auth:latest
     environment:
