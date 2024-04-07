@@ -122,6 +122,24 @@ services:
       - db-collie
       - discovery
 
+  service:
+    build:
+      context: ../collie.service-resource/
+      dockerfile: Dockerfile
+    image: collie-service:latest
+    environment:
+      - spring.datasource.url=jdbc:postgresql://collie-db-collie:5432/collie
+      - spring.datasource.username=collie
+      - spring.datasource.password=collie
+      - eureka.client.service-url.defaultZone=http://collie-discovery:8761/eureka/
+    restart: always
+    networks:
+      - private-network
+    depends_on:
+      - squad
+      - db-collie
+      - discovery
+
 
   auth:
     build:
