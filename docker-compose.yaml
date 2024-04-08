@@ -119,6 +119,7 @@ services:
       - private-network
     depends_on:
       - company
+      - account
       - db-collie
       - discovery
 
