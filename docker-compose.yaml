@@ -103,6 +103,8 @@ services:
     depends_on:
       - db-collie
       - discovery
+      - redis
+
 
   squad:
     build:
@@ -122,6 +124,7 @@ services:
       - account
       - db-collie
       - discovery
+      - redis
 
   service:
     build:
@@ -140,6 +143,8 @@ services:
       - squad
       - db-collie
       - discovery
+      - redis
+
 
 
   auth:
@@ -157,6 +162,12 @@ services:
     depends_on:
       - discovery
       - account
+    
+  redis:
+    image: redis:latest
+    container_name: redis
+    networks:
+      - private-network
 
 networks:
   private-network:
